@@ -65,7 +65,7 @@ extension SZAVPlayerDelegate {
     public func avplayer(_ avplayer: SZAVPlayer, didOutput videoImage: CGImage) {}
 }
 
-public class SZAVPlayer: UIView {
+public class SZAVPlayer: NSObject {
 
     public var isMuted: Bool = false {
         didSet {
@@ -97,6 +97,7 @@ public class SZAVPlayer: UIView {
         return time.isSafe() ? time : 0
     }
 
+    public var videoPlayView: UIView? // 播放view
     private(set) public var playerLayer: AVPlayerLayer?
     private(set) public var player: AVPlayer?
     private(set) public var playerItem: AVPlayerItem?
@@ -117,17 +118,11 @@ public class SZAVPlayer: UIView {
     private var isReadyToPlay: Bool = false
     private var isBufferBegin: Bool = false
     private var seekItem: SZAVPlayerSeekItem?
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-
-        backgroundColor = .clear
-        SZAVPlayerCache.shared.setup(maxCacheSize: 100)
-        setupRemoteTransportControls()
-    }
-
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    
+    public override init() {
+        super.init()
+        //SZAVPlayerCache.shared.setup(maxCacheSize: 100)
+        self.setupRemoteTransportControls()
     }
 
     deinit {
@@ -661,10 +656,11 @@ extension SZAVPlayer {
 
     private func createPlayerLayer(videoGravity: AVLayerVideoGravity = .resizeAspect) {
         let layer = AVPlayerLayer(player: player)
-        layer.frame = bounds
+        if let playView = self.videoPlayView {
+            layer.frame = playView.bounds
+            playView.layer.addSublayer(layer)
+        }
         layer.videoGravity = videoGravity
-
-        self.layer.addSublayer(layer)
         playerLayer = layer
     }
 

@@ -9,6 +9,7 @@
 import UIKit
 import SZAVPlayer
 import SnapKit
+import AVFoundation
 
 class VideoViewController: UIViewController {
 
@@ -20,6 +21,13 @@ class VideoViewController: UIViewController {
     private lazy var cleanCacheBbtn: UIButton = createCleanCacheBtn()
 
     private lazy var videoPlayer: SZAVPlayer = createVideoPlayer()
+    
+    let playView: UIView = {
+        let view = UIView.init(frame: .zero)
+        view.backgroundColor = .black
+        return view
+    }()
+    
     private let enableVideoOutput: Bool
     private lazy var videoOutputView1: UIImageView = createVideoOutputView()
     private lazy var videoOutputView2: UIImageView = createVideoOutputView()
@@ -46,9 +54,9 @@ class VideoViewController: UIViewController {
 
         view.backgroundColor = .white
 
-        addSubviews()
         SZAVPlayerCache.shared.setup(maxCacheSize: 100)
-
+        addSubviews()
+        
         currentVideo = videos.first
         updateView()
     }
@@ -93,6 +101,22 @@ extension VideoViewController {
     }
 
     private func addSubviews() {
+        
+        self.view.addSubview(self.playView)
+        self.playView.snp.makeConstraints { make in
+            make.leading.equalTo(self.view).offset(10)
+            make.trailing.equalTo(self.view).offset(-10)
+            if #available(iOS 11.0, *) {
+                make.top.equalTo(self.view.safeAreaLayoutGuide.snp.top).offset(20)
+            }
+            else {
+                make.top.equalTo(self.view).offset(20)
+            }
+            
+            make.height.equalTo(200)
+        }
+        videoPlayer.videoPlayView = self.playView
+        /*
         view.addSubview(videoPlayer)
         videoPlayer.snp.makeConstraints { (make) in
             make.left.right.equalToSuperview().inset(15)
@@ -103,13 +127,14 @@ extension VideoViewController {
             offsetTop = max(64, offsetTop)
             make.top.equalTo(offsetTop)
         }
+         */
 
         view.addSubview(videoTitleLabel)
         videoTitleLabel.snp.makeConstraints { (make) in
             make.left.right.equalToSuperview().inset(15)
             make.height.equalTo(30)
             make.centerX.equalToSuperview()
-            make.top.equalTo(videoPlayer.snp.bottom).offset(30)
+            make.top.equalTo(playView.snp.bottom).offset(30)
         }
 
         view.addSubview(progressView)
@@ -353,7 +378,7 @@ extension VideoViewController {
 
     private func createVideoPlayer() -> SZAVPlayer {
         let player = SZAVPlayer()
-        player.backgroundColor = .black
+        //player.backgroundColor = .black
         player.delegate = self
 
         return player
